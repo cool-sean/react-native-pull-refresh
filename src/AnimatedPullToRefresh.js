@@ -1,13 +1,5 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import {
-  View,
-  ScrollView,
-  Animated,
-  PanResponder,
-  UIManager,
-  Dimensions,
-} from 'react-native';
+import { View, ScrollView, Animated, PanResponder, UIManager, Dimensions } from 'react-native';
 
 import Animation from 'lottie-react-native';
 
@@ -33,44 +25,6 @@ class AnimatedPullToRefresh extends React.Component {
     UIManager.setLayoutAnimationEnabledExperimental &&
       UIManager.setLayoutAnimationEnabledExperimental(true);
   }
-
-  static propTypes = {
-    /**
-     * Refresh state set by parent to trigger refresh
-     * @type {Boolean}
-     */
-    isRefreshing: PropTypes?.bool.isRequired,
-    /**
-     * Pull Distance
-     * @type {Integer}
-     */
-    pullHeight: PropTypes?.number,
-    /**
-     * Callback after refresh event
-     * @type {Function}
-     */
-    onRefresh: PropTypes?.func.isRequired,
-    /**
-     * The content: ScrollView or ListView
-     * @type {Object}
-     */
-    contentView: PropTypes?.object.isRequired,
-    /**
-     * Background color
-     * @type {string}
-     */
-    animationBackgroundColor: PropTypes?.string,
-    /**
-     * Custom onScroll event
-     * @type {Function}
-     */
-    onScroll: PropTypes.func,
-  };
-
-  static defaultProps = {
-    pullHeight: 180,
-    animationBackgroundColor: 'white',
-  };
 
   componentWillMount() {
     this._panResponder = PanResponder.create({
@@ -122,26 +76,10 @@ class AnimatedPullToRefresh extends React.Component {
 
   _handlePanResponderEnd(e, gestureState) {
     if (!this.props.isRefreshing) {
-      if (this.state.refreshHeight._value <= -this.props.pullHeight) {
-        this.onScrollRelease();
-        Animated.parallel([
-          Animated.spring(this.state.refreshHeight, {
-            toValue: -this.props.pullHeight,
-          }),
-          Animated.timing(this.state.initAnimationProgress, {
-            toValue: 1,
-            duration: 1000,
-          }),
-        ]).start(() => {
-          this.state.initAnimationProgress.setValue(0);
-          this.setState({isRefreshAnimationStarted: true});
-          this.onRepeatAnimation();
-        });
-      } else if (this.state.refreshHeight._value <= 0) {
         Animated.spring(this.state.refreshHeight, {
           toValue: 0,
+          useNativeDriver: true,
         }).start();
-      }
 
       if (this.state.scrollY._value > 0) {
         this.setState({isScrollFree: true});
@@ -155,6 +93,7 @@ class AnimatedPullToRefresh extends React.Component {
     Animated.timing(this.state.repeatAnimationProgress, {
       toValue: 1,
       duration: 1000,
+      useNativeDriver: true,
     }).start(() => {
       if (this.props.isRefreshing) {
         this.onRepeatAnimation();
@@ -170,10 +109,12 @@ class AnimatedPullToRefresh extends React.Component {
     Animated.sequence([
       Animated.timing(this.state.finalAnimationProgress, {
         toValue: 1,
+        useNativeDriver: true,
         duration: 1000,
       }),
       Animated.spring(this.state.refreshHeight, {
         toValue: 0,
+        useNativeDriver: true,
         bounciness: 12,
       }),
     ]).start(() => {
@@ -272,7 +213,7 @@ class AnimatedPullToRefresh extends React.Component {
         />
 
         <ScrollView
-                    ref="scrollComponentRef"
+          ref="scrollComponentRef"
           scrollEnabled={this.state.isScrollFree}
           onScroll={onScrollEvent}
           onTouchEnd={() => {
@@ -281,7 +222,7 @@ class AnimatedPullToRefresh extends React.Component {
           onScrollEndDrag={() => {
             this.isScrolledToTop();
           }}>
-          <Animated.View style={{marginTop: animateHeight}}>
+          <Animated.View style={{translateY: animateHeight}}>
             {React.cloneElement(this.props.contentView, {
               scrollEnabled: false,
               ref: 'scrollComponentRef',
